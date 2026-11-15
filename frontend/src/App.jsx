@@ -1,29 +1,34 @@
 // frontend/src/App.jsx
-import { useState, useEffect } from 'react';
-import api from './services/api';
+import { useState } from 'react';
+import Landing from './pages/Landing';
+import ReservationLookup from './pages/ReservationLookup';
 
 function App() {
-  const [mensajeBackend, setMensajeBackend] = useState('Conectando con el backend...');
-
-  useEffect(() => {
-    // Llamamos al endpoint de prueba que configuramos en el index.php del backend
-    api.get('/index.php?endpoint=test') // O directamente a tu ruta si ya la tienes mapeada
-       .then(response => {
-          setMensajeBackend(response.data.message);
-       })
-       .catch(error => {
-          console.error('Error de conexión:', error);
-          setMensajeBackend('No se pudo conectar con el servidor PHP.');
-       });
-  }, []);
+  const [vistaActual, setVistaActual] = useState('landing'); // 'landing' o 'lookup'
 
   return (
-    <div style={{ fontFamily: 'sans-serif', textAlign: 'center', marginTop: '50px' }}>
-      <h1>Camping Manager - Frontend Activo</h1>
-      <div style={{ padding: '20px', background: '#f0f0f0', display: 'inline-block', borderRadius: '8px' }}>
-        <h3>Estado de la conexión:</h3>
-        <p style={{ color: '#0070f3', fontWeight: 'bold' }}>{mensajeBackend}</p>
-      </div>
+    <div>
+      {/* Barra de navegación superior temporal para alternar vistas */}
+      <nav style={{ background: '#2c3e50', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff' }}>
+        <h3 style={{ margin: 0, cursor: 'pointer' }} onClick={() => setVistaActual('landing')}>Camping Manager</h3>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button 
+            onClick={() => setVistaActual('landing')} 
+            style={{ background: vistaActual === 'landing' ? '#34495e' : 'transparent', color: '#fff', border: '1px solid #fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            Nueva Reserva (Landing)
+          </button>
+          <button 
+            onClick={() => setVistaActual('lookup')} 
+            style={{ background: vistaActual === 'lookup' ? '#34495e' : 'transparent', color: '#fff', border: '1px solid #fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            Consultar con Código Privado
+          </button>
+        </div>
+      </nav>
+
+      {/* Renderizado condicional de vistas */}
+      {vistaActual === 'landing' ? <Landing /> : <ReservationLookup />}
     </div>
   );
 }
