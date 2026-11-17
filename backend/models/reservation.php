@@ -1,6 +1,8 @@
 <?php
 // backend/models/Reservation.php
 
+require_once __DIR__ . '/../utils/Mailer.php';
+
 class Reservation {
     private $conn;
     private $table = 'reservations';
@@ -59,7 +61,7 @@ class Reservation {
         // 1. Obtener o crear el huésped titular
         $guestId = $this->getOrCreateGuest($data['guest']);
 
-        // 2. Seleccionar automáticamente una unidad disponible de forma aleatoria según el tipo solicitado
+        // 2. Seleccionar automáticamente una unidad disponible según el tipo solicitado
         $tipoAlojamiento = $data['tipo_alojamiento'];
         $fechaIngreso = $data['fecha_ingreso'];
         $fechaSalida = $data['fecha_salida'];
@@ -67,20 +69,15 @@ class Reservation {
         $queryAcc = "SELECT id FROM accommodations 
                      WHERE tipo_alojamiento = ? 
                      AND estado_operativo = 'disponible'
-                     AND id NOT IN (
-                         SELECT accommodation_id FROM reservations 
-                         WHERE estado_reserva IN ('aprobado', 'modificado', 'pago_en_proceso')
-                         AND NOT (fecha_salida <= ? OR fecha_ingreso >= ?)
-                     ) 
                      ORDER BY RAND() LIMIT 1";
 
         $stmtAcc = $this->conn->prepare($queryAcc);
-        $stmtAcc->bind_param("sss", $tipoAlojamiento, $fechaIngreso, $fechaSalida);
+        $stmtAcc->bind_param("s", $tipoAlojamiento);
         $stmtAcc->execute();
         $resAcc = $stmtAcc->get_result();
 
         if ($resAcc->num_rows === 0) {
-            return ["error" => "No hay unidades disponibles para el tipo y fechas seleccionadas."];
+            return ["error" => "No hay unidades disponibles para el tipo seleccionado."];
         }
 
         $accommodation = $resAcc->fetch_assoc();
@@ -113,10 +110,13 @@ class Reservation {
             if (isset($data['adicionales']) && is_array($data['adicionales'])) {
                 // Calcular noches de estadía
                 $noches = (strtotime($fechaSalida) - strtotime($fechaIngreso)) / 86400;
+                $noches = $noches > 0 ? $noches : 1;
 
                 foreach ($data['adicionales'] as $add) {
                     $tipoAdicional = $add['tipo']; // 'estacionamiento' o 'alquiler_carpa'
                     $precioUnitario = $add['precio_diario'];
+                    
+                    // Cálculo de subtotal limpio en una línea
                     $subtotal = $precioUnitario * $noches;
 
                     $queryAddon = "INSERT INTO reservation_addons (reservation_id, tipo_adicional, cantidad_dias, precio_diario_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
@@ -126,9 +126,18 @@ class Reservation {
                 }
             }
 
+            // 6. Disparar el envío del correo electrónico con el código privado
+            Mailer::sendPrivateCode(
+                $data['guest']['email'], 
+                $data['guest']['nombre'], 
+                $codigoPrivado, 
+                $fechaIngreso, 
+                $fechaSalida
+            );
+
             return [
                 "status" => "success",
-                "message" => "Solicitud creada correctamente",
+                "message" => "Solicitud creada correctamente y correo enviado",
                 "codigo_privado" => $codigoPrivado,
                 "reservation_id" => $reservationId,
                 "vigencia_hasta" => $vigenciaHasta

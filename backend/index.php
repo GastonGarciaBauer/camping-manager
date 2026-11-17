@@ -12,8 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/config/database.php';
-require_once __DIR__ . '/controllers/AccommodationController.php';
-require_once __DIR__ . '/controllers/ReservationController.php';
+require_once __DIR__ . '/controllers/accommodationController.php';
+require_once __DIR__ . '/controllers/reservationController.php';
+require_once __DIR__ . '/controllers/paymentController.php';
+require_once __DIR__ . '/controllers/adminController.php';
+require_once __DIR__ . '/controllers/webhookController.php';
 
 // Detectar endpoint
 $endpoint = isset($_GET['endpoint']) ? $_GET['endpoint'] : '';
@@ -46,6 +49,21 @@ switch ($endpoint) {
     
     case 'reservations':
         $controller = new ReservationController($db);
+        $controller->handleRequest($method);
+        break;
+    
+    case 'payment':
+        $controller = new PaymentController($db);
+        $controller->handleRequest($method);
+        break;
+
+    case 'admin':
+        $controller = new AdminController($db);
+        $controller->handleRequest($method);
+        break;
+
+    case 'webhook':
+        $controller = new WebhookController($db);
         $controller->handleRequest($method);
         break;
 
