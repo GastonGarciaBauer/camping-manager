@@ -12,12 +12,25 @@ export default function AdminDashboard() {
     setCargando(true);
     try {
       const resStats = await api.get('/index.php?endpoint=admin&action=stats');
-      setStats(resStats.data.data);
+      // Aseguramos que stats sea un objeto válido
+      const statsData = resStats.data?.data || resStats.data || {};
+      setStats(statsData);
 
       const resReservas = await api.get('/index.php?endpoint=admin&action=reservations');
-      setReservas(resReservas.data.data);
+      
+      // BLINDAJE TOTAL: Verificamos de forma segura si viene como array o envuelto en .data
+      const rawData = resReservas.data;
+      let arrayFinal = [];
+      if (Array.isArray(rawData)) {
+        arrayFinal = rawData;
+      } else if (rawData && Array.isArray(rawData.data)) {
+        arrayFinal = rawData.data;
+      }
+      setReservas(arrayFinal);
+
     } catch (err) {
       console.error("Error al cargar datos del backoffice:", err);
+      setReservas([]);
     } finally {
       setCargando(false);
     }
@@ -61,7 +74,7 @@ export default function AdminDashboard() {
             <div style={{ background: '#e3f2fd', padding: '15px', borderRadius: '50%', color: '#1976d2' }}><Calendar size={28} /></div>
             <div>
               <p style={{ margin: '0', color: '#777', fontSize: '0.9rem' }}>Total Reservas</p>
-              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>{stats.total_reservations}</h2>
+              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>{stats?.total_reservations ?? 0}</h2>
             </div>
           </div>
 
@@ -69,7 +82,7 @@ export default function AdminDashboard() {
             <div style={{ background: '#e8f5e9', padding: '15px', borderRadius: '50%', color: '#2e7d32' }}><CheckCircle size={28} /></div>
             <div>
               <p style={{ margin: '0', color: '#777', fontSize: '0.9rem' }}>Aprobadas</p>
-              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>{stats.approved_reservations}</h2>
+              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>{stats?.approved_reservations ?? 0}</h2>
             </div>
           </div>
 
@@ -77,7 +90,7 @@ export default function AdminDashboard() {
             <div style={{ background: '#fff8e1', padding: '15px', borderRadius: '50%', color: '#f57f17' }}><Clock size={28} /></div>
             <div>
               <p style={{ margin: '0', color: '#777', fontSize: '0.9rem' }}>Pendientes</p>
-              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>{stats.pending_reservations}</h2>
+              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>{stats?.pending_reservations ?? stats?.pending_payments ?? 0}</h2>
             </div>
           </div>
 
@@ -85,7 +98,7 @@ export default function AdminDashboard() {
             <div style={{ background: '#ede7f6', padding: '15px', borderRadius: '50%', color: '#512da8' }}><DollarSign size={28} /></div>
             <div>
               <p style={{ margin: '0', color: '#777', fontSize: '0.9rem' }}>Ingresos Totales</p>
-              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>${stats.total_revenue.toLocaleString()}</h2>
+              <h2 style={{ margin: '5px 0 0 0', color: '#2c3e50' }}>${(stats?.total_revenue ?? 0).toLocaleString()}</h2>
             </div>
           </div>
 
@@ -110,7 +123,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {reservas.length === 0 ? (
+                {!Array.isArray(reservas) || reservas.length === 0 ? (
                   <tr>
                     <td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>No hay reservas registradas aún.</td>
                   </tr>
@@ -119,7 +132,7 @@ export default function AdminDashboard() {
                     <tr key={r.id} style={{ borderBottom: '1px solid #f1f1f1' }}>
                       <td style={{ padding: '12px', fontWeight: 'bold', color: '#0070f3' }}>{r.codigo_privado}</td>
                       <td style={{ padding: '12px' }}>{r.guest_nombre} {r.guest_apellido}</td>
-                      <td style={{ padding: '12px' }}>{r.tipo_alojamiento.replace(/_/g, ' ')} <br/><small style={{color:'#888'}}>({r.codigo_unidad})</small></td>
+                      <td style={{ padding: '12px' }}>{r.tipo_alojamiento ? r.tipo_alojamiento.replace(/_/g, ' ') : ''} <br/><small style={{color:'#888'}}>({r.codigo_unidad})</small></td>
                       <td style={{ padding: '12px' }}>{r.fecha_ingreso} al {r.fecha_salida}</td>
                       <td style={{ padding: '12px' }}>
                         <span style={{ 
