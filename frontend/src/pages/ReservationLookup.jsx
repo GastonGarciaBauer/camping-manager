@@ -1,26 +1,28 @@
 // frontend/src/pages/ReservationLookup.jsx
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import api from '../services/api';
 import { Search, CreditCard, Calendar, Users, MapPin, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 
 export default function ReservationLookup() {
-  const [codigo, setCodigo] = useState('');
+  const { codigo: codigoParam } = useParams(); // Captura el código de la URL si existe
+  const [codigo, setCodigo] = useState(codigoParam || '');
   const [reserva, setReserva] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [cargandoPago, setCargandoPago] = useState(false);
   const [error, setError] = useState('');
 
-  // 1. Buscar la reserva por código privado
-  const handleBuscar = async (e) => {
-    e.preventDefault();
-    if (!codigo.trim()) return;
+  // 1. Buscar la reserva por código privado (Envuelto en useCallback para estabilidad)
+  const handleBuscar = useCallback(async (codigoABuscar) => {
+    const codigoTrim = (codigoABuscar || codigo).trim();
+    if (!codigoTrim) return;
 
     setCargando(true);
     setError('');
     setReserva(null);
 
     try {
-      const response = await api.get(`/index.php?endpoint=reservations&codigo=${codigo.trim()}`);
+      const response = await api.get(`/index.php?endpoint=reservations&codigo=${codigoTrim}`);
       setReserva(response.data.data);
     } catch (err) {
       console.error(err);
@@ -28,6 +30,19 @@ export default function ReservationLookup() {
     } finally {
       setCargando(false);
     }
+  }, [codigo]);
+
+  // Si se ingresa mediante el link del correo con parámetro en la URL, se ejecuta solo al cargar
+  useEffect(() => {
+    if (codigoParam) {
+      setCodigo(codigoParam);
+      handleBuscar(codigoParam);
+    }
+  }, [codigoParam, handleBuscar]);
+
+  const onSubmitForm = (e) => {
+    e.preventDefault();
+    handleBuscar(codigo);
   };
 
   // 2. Iniciar el pago (Bloqueo temporal de 15 min + Preferencia Mercado Pago)
@@ -36,8 +51,8 @@ export default function ReservationLookup() {
     try {
       // Calculamos el monto total aproximado (Tarifa base * noches + adicionales)
       const noches = (new Date(reserva.fecha_salida) - new Date(reserva.fecha_ingreso)) / (1000 * 60 * 60 * 24);
-      const subtotalBase = reserva.tarifa_base_diaria * noches;
-      const subtotalAdicionales = reserva.adicionales.reduce((acc, curr) => acc + parseFloat(curr.subtotal), 0);
+      const subtotalBase = reserva.tarifa_base_diaria * (noches > 0 ? noches : 1);
+      const subtotalAdicionales = reserva.adicionales ? reserva.adicionales.reduce((acc, curr) => acc + parseFloat(curr.subtotal), 0) : 0;
       const montoTotal = subtotalBase + subtotalAdicionales;
 
       const response = await api.post('/index.php?endpoint=payments', {
@@ -81,7 +96,7 @@ export default function ReservationLookup() {
         <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>Ingresa tu código privado para consultar tu reserva o realizar el pago.</p>
 
         {/* Formulario de Búsqueda */}
-        <form onSubmit={handleBuscar} style={{ background: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', display: 'flex', gap: '10px', marginBottom: '30px' }}>
+        <form onSubmit={onSubmitForm} style={{ background: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', display: 'flex', gap: '10px', marginBottom: '30px' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={20} color="#888" style={{ position: 'absolute', left: '12px', top: '13px' }} />
             <input 
@@ -90,7 +105,7 @@ export default function ReservationLookup() {
               value={codigo} 
               onChange={e => setCodigo(e.target.value)}
               required
-              style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '1rem', textTransform: 'uppercase' }}
+              style={{ width: '100%', padding: '10px 10px 10px 10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '1rem', textTransform: 'uppercase' }}
             />
           </div>
           <button type="submit" disabled={cargando} style={{ padding: '10px 25px', background: '#2c3e50', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
@@ -133,26 +148,25 @@ export default function ReservationLookup() {
 
             <h3 style={{ fontSize: '1.1rem', color: '#2c3e50', marginBottom: '10px' }}>Alojamiento Solicitado / Asignado</h3>
             <p style={{ background: '#e8f5e9', color: '#2e7d32', padding: '12px', borderRadius: '6px', margin: '0 0 20px 0', fontWeight: '500' }}>
-              Tipo: <strong>{reserva.tipo_alojamiento.replace(/_/g, ' ').toUpperCase()}</strong> (Tarifa base diaria: ${reserva.tarifa_base_diaria})
+              Tipo: <strong>{reserva.tipo_alojamiento ? reserva.tipo_alojamiento.replace(/_/g, ' ').toUpperCase() : 'ALOJAMIENTO'}</strong> (Tarifa base diaria: ${reserva.tarifa_base_diaria})
             </p>
 
             {/* Adicionales contratados si los hay */}
-{reserva.adicionales && reserva.adicionales.length > 0 && (
-  <div style={{ marginBottom: '20px' }}>
-    <h4 style={{ margin: '0 0 8px 0', color: '#555' }}>Adicionales Contratados:</h4>
-    <ul style={{ margin: '0', paddingLeft: '20px', color: '#666' }}>
-      {reserva.adicionales.map((add, idx) => {
-        // Nos aseguramos de que add.tipo exista antes de aplicar replace
-        const tipoTexto = add.tipo ? add.tipo.replace(/_/g, ' ').toUpperCase() : 'ADICIONAL';
-        return (
-          <li key={idx}>
-            {tipoTexto} — {add.cantidad_dias} días (Subtotal: ${add.subtotal})
-          </li>
-        );
-      })}
-    </ul>
-  </div>
-)}
+            {reserva.adicionales && reserva.adicionales.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ margin: '0 0 8px 0', color: '#555' }}>Adicionales Contratados:</h4>
+                <ul style={{ margin: '0', paddingLeft: '20px', color: '#666' }}>
+                  {reserva.adicionales.map((add, idx) => {
+                    const tipoTexto = add.tipo ? add.tipo.replace(/_/g, ' ').toUpperCase() : 'ADICIONAL';
+                    return (
+                      <li key={idx}>
+                        {tipoTexto} — {add.cantidad_dias} días (Subtotal: ${add.subtotal})
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
 
             {/* Botón de Pago si está Pendiente */}
             {reserva.estado_reserva === 'pendiente_pago' && (
@@ -174,7 +188,7 @@ export default function ReservationLookup() {
             {reserva.estado_reserva === 'aprobado' && (
               <div style={{ textAlign: 'center', marginTop: '20px', background: '#d4edda', color: '#155724', padding: '15px', borderRadius: '6px' }}>
                 <CheckCircle size={20} style={{ verticalAlign: 'middle', marginRight: '8px' }} />
-                ¡Tu reserva se encuentra confirmada y aprobada! Te esperamos en el camping.
+                ¡Tu reserva se encuentra confirmada y aprobada! Te esperamos en Tierra Adentro.
               </div>
             )}
 
