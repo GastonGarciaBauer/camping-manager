@@ -225,7 +225,7 @@ export default function Landing() {
             <div className="camping-content reveal">
               <span className="camping-kicker">EL CAMPING</span>
               <h3>Lejos del ruido.<br/>Cerca de lo que importa.</h3>
-              <p className="camping-paragraph">Lejos del ruido y cerca de lo que realmente importa. Entre senderos, noches estrelladas y mañanas llenas de aire puro, Tierra Adentro te invita a vivir una experiencia diferente.</p>
+              <p className="camping-paragraph">Entre senderos, noches estrelladas y mañanas llenas de aire puro, Tierra Adentro te invita a vivir una experiencia diferente.</p>
               <p className="camping-paragraph">Ya sea que vengas en familia, con amigos o buscando tranquilidad, tenemos un lugar para vos.</p>
               <a className="button button--outline" href="#instalaciones" onClick={(e) => scrollToSection(e, 'instalaciones')}>
                 Conocé nuestro lugar <span>↗</span>
@@ -282,7 +282,7 @@ export default function Landing() {
               <div className="facility-card__footer">
                 <div>
                   <h3>Zona de acampe</h3>
-                  <p>Tu lugar entre árboles, con aire puro y espacio para desconectar.</p>
+                  <p>Entre árboles, con aire puro y espacio para desconectar.</p>
                 </div>
                 <span className="facility-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none"><path d="M3 20h18L12 4 3 20Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>
@@ -472,6 +472,7 @@ export default function Landing() {
       {/* Cinta dorada de valores */}
       <div className="experiences-ribbon" aria-label="Valores de Tierra Adentro">
         <div className="experiences-ribbon__track">
+          
           <span>AIRE PURO</span>
           <b>✳</b>
           <span>BUENA COMPAÑÍA</span>
@@ -479,7 +480,7 @@ export default function Landing() {
           <span>NOCHES ESTRELLADAS</span>
           <b>✳</b>
           <span>TIEMPO PARA VOS</span>
-          <b>✳</b>
+          
         </div>
       </div>
 
