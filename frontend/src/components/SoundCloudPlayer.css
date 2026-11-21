@@ -1,14 +1,15 @@
 
 .soundcloud-hidden-frame {
-  position: fixed;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-  border: 0;
-  left: -9999px;
+  position: fixed !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  left: -9999px !important;
+  top: 0 !important;
+  border: 0 !important;
 }
-
+  
 .camping-player {
   position: absolute;
   z-index: 9999;
@@ -180,10 +181,16 @@
 
 @media (max-width: 600px) {
   .camping-player {
+    top: auto;
     bottom: 12px;
     right: 12px;
     left: 12px;
+
     width: auto;
+    max-width: none;
+
+    transform: none;
+
     justify-content: space-between;
     gap: 8px;
     padding: 10px 12px;
