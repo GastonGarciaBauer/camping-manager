@@ -1,0 +1,214 @@
+
+.soundcloud-hidden-frame {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  left: -9999px;
+}
+
+.camping-player {
+  position: absolute;
+  z-index: 9999;
+  top: calc(100vh - 54px);
+  right: 24px;
+  transform: translateY(-100%);
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  padding: 12px 18px;
+
+  background: rgba(35, 48, 38, 0.96);
+  color: #f4f0e5;
+
+  border: 1px solid rgba(222, 210, 177, 0.25);
+  border-radius: 14px;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+
+  max-width: calc(100vw - 32px);
+}
+
+.camping-player-info {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  width: 175px;
+}
+
+.camping-player-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: rgba(222, 210, 177, 0.13);
+  border: 1px solid rgba(222, 210, 177, 0.25);
+
+  font-size: 21px;
+  color: #d6c69e;
+}
+
+.camping-player-track {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+}
+
+.camping-player-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #c1b895;
+}
+
+.camping-player-title {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.camping-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.camping-player button {
+  border: none;
+  background: transparent;
+  color: #e9e2cf;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 5px;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.camping-player button:hover:not(:disabled) {
+  color: #d6c69e;
+  transform: scale(1.12);
+}
+
+.camping-player button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.camping-player .camping-player-main-button {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #d6c69e;
+  color: #263629;
+  font-size: 14px;
+}
+
+.camping-player .camping-player-main-button:hover:not(:disabled) {
+  background: #e5d8b5;
+  color: #263629;
+}
+
+.camping-player-volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d6c69e;
+  font-size: 17px;
+}
+
+.camping-player-volume input {
+  width: 65px;
+  height: 3px;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+
+  background: linear-gradient(
+    to right,
+    #d6c69e var(--volume),
+    rgba(255, 255, 255, 0.2) var(--volume)
+  );
+}
+
+.camping-player-volume input::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d6c69e;
+}
+
+.camping-player-volume input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background: #d6c69e;
+}
+
+.camping-player-credit {
+  font-size: 9px;
+  color: #c1b895;
+  text-decoration: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  padding-left: 12px;
+}
+
+.camping-player-credit:hover {
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .camping-player {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .camping-player-info {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .camping-player-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .camping-player-controls {
+    gap: 6px;
+  }
+
+  .camping-player-volume {
+    display: none;
+  }
+
+  .camping-player-credit {
+    display: none;
+  }
+}
