@@ -152,11 +152,45 @@ export default function Landing() {
 
         <header className="site-header">
           <a className="brand" href="#inicio" onClick={(e) => scrollToSection(e, 'inicio')} aria-label="Tierra Adentro, inicio">
-            <svg className="brand__mark" viewBox="0 0 54 54" fill="none" aria-hidden="true">
-              <path d="M27 4 5 39h44L27 4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-              <path d="m27 4 0 35M16 21h22M11 30h32M20 39l7-12 7 12" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="m5 39 9-8 7 8M49 39l-9-8-7 8" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+            
+<svg className="brand__mark" viewBox="0 0 54 46" fill="none" aria-hidden="true">
+  {/* Sol */}
+  <circle
+    cx="14"
+    cy="8"
+    r="3.2"
+    stroke="currentColor"
+    strokeWidth="2.2"
+  />
+
+  {/* Carpa */}
+  <path
+    d="M5 39 L18 20 H34 L47 39 H5Z"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+
+  {/* Interior de la carpa */}
+  <path
+    d="M18 20 L17 39 M18 20 L28 39"
+    stroke="currentColor"
+    strokeWidth="1.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+
+  {/* Árbol */}
+  <path
+    d="M39 20 V3 M33.5 8.5 L39 3 L44.5 8.5 M33.5 14.5 L39 9 L44.5 14.5"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+</svg>
+
             <span className="brand__copy">
               <strong>Tierra Adentro</strong>
               <small>CAMPING · NATURALEZA · ENCUENTRO</small>

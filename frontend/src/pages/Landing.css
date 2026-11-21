@@ -80,7 +80,7 @@
 }
 
 .landing-page .brand { display: inline-flex; align-items: center; gap: 11px; color: #fff; }
-.landing-page .brand__mark { width: 32px; height: 37px; }
+.landing-page .brand__mark { width: 40px; height: 45px; }
 .landing-page .brand__copy { display: flex; flex-direction: column; gap: 3px; }
 .landing-page .brand__copy strong { font: 600 18px/1 "Manrope", sans-serif; letter-spacing: -.6px; }
 .landing-page .brand__copy small { font-size: 8.5px; letter-spacing: 1.4px; font-weight: 700; opacity: 0.9; }
