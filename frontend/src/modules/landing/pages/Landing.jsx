@@ -1,7 +1,7 @@
 // frontend/src/pages/Landing.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import api from '../../../services/api';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import SoundCloudPlayer from '../components/SoundCloudPlayer.jsx';
 import parking from '../assets/instalaciones/parking.jpg';

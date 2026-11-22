@@ -1,30 +1,37 @@
-/* --- ENCAPSULAMIENTO Y ANCHO TOTAL ABSOLUTO DE LA LANDING --- */
+/* --- ENCAPSULAMIENTO Y ANCHO TOTAL DE LA LANDING --- */
 .landing-page {
+  --cream: #f8f5eb;
+  --gold: #e9b957;
+  --forest: #3d5b50;
+  --deep-forest: #1d3b31;
+  --ink: #18231e;
+  --bg-sand: #f3efe6;
+  --bg-light: #f6f3ec;
+
   font-family: "DM Sans", sans-serif;
   color: #18231e;
   background: #f3efe6;
   margin: 0;
   padding: 0;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
-.landing-page * { 
-  box-sizing: border-box; 
+.landing-page *,
+.landing-page *::before,
+.landing-page *::after {
+  box-sizing: border-box;
 }
 
 .landing-page html { 
   scroll-behavior: smooth; 
 }
 
-.landing-page a { 
-  color: inherit; 
-  text-decoration: none; 
+.landing-page a {
+  color: inherit;
+  text-decoration: none;
 }
 
 /* --- VARIABLES LOCALES --- */
@@ -80,7 +87,7 @@
 }
 
 .landing-page .brand { display: inline-flex; align-items: center; gap: 11px; color: #fff; }
-.landing-page .brand__mark { width: 40px; height: 45px; }
+.landing-page .brand__mark { width: 40px; height: 45px; color: #c9a45c; }
 .landing-page .brand__copy { display: flex; flex-direction: column; gap: 3px; }
 .landing-page .brand__copy strong { font: 600 18px/1 "Manrope", sans-serif; letter-spacing: -.6px; }
 .landing-page .brand__copy small { font-size: 8.5px; letter-spacing: 1.4px; font-weight: 700; opacity: 0.9; }
