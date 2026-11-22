@@ -1,27 +1,29 @@
 function AccommodationIcon() {
   return (
-    <svg viewBox="0 0 28 24" fill="none" aria-hidden="true">
-      <path
-        d="M3 19 10.5 7 18 19H3Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10.5 7v12M3 19l7.5-6 7.5 6"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M22.5 19v-7M19.5 15l3-3 3 3M20 11.5l2.5-2.5 2.5 2.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    
+    <svg viewBox="0 0 44 44" fill="none" aria-hidden="true">
+      <circle cx="14" cy="8" r="3.2" stroke="currentColor" strokeWidth="3" />
+          <path
+            d="M5 39 L18 20 H34 L47 39 H5Z"
+            stroke="currentColor"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M18 20 L17 39 M18 20 L28 39"
+            stroke="currentColor"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M39 20 V3 M33.5 8.5 L39 3 L44.5 8.5 M33.5 14.5 L39 9 L44.5 14.5"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
     </svg>
   );
 }
