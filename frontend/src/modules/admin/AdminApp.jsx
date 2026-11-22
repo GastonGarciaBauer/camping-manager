@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import "./styles/admin.css";
 import { INITIAL_MOVEMENTS, INITIAL_TASKS } from "./data/mockResumen";
+import { INITIAL_ACCOMMODATIONS } from "./data/mockDisponibilidad";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { ReservationModal } from "./components/common/ReservationModal";
 import { Toast } from "./components/common/Toast";
 import { ResumenPage } from "./pages/ResumenPage";
+import { Availability } from "./pages/Availability";
 import { ReservationPage } from "./pages/ReservationPage";
 import { SeccionDemoPage } from "./pages/SeccionDemoPage";
 
@@ -40,6 +42,7 @@ export default function AdminApp() {
   const [activeSection, setActiveSection] = useState("Resumen");
   const [movements, setMovements] = useState(INITIAL_MOVEMENTS);
   const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [accommodations] = useState(INITIAL_ACCOMMODATIONS);
   const [modalOpen, setModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -117,9 +120,15 @@ export default function AdminApp() {
           />
         )}
 
-        {activeSection !== "Resumen" && activeSection !== "Reservas" && (
-          <SeccionDemoPage section={activeSection} />
+        {activeSection === "Disponibilidad" && (
+          <Availability items={accommodations} onShowToast={showToast} />
         )}
+
+        {activeSection !== "Resumen" &&
+          activeSection !== "Reservas" &&
+          activeSection !== "Disponibilidad" && (
+            <SeccionDemoPage section={activeSection} />
+          )}
       </AdminLayout>
 
       <ReservationModal

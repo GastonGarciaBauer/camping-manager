@@ -1,0 +1,121 @@
+function AccommodationIcon() {
+  return (
+    <svg viewBox="0 0 28 24" fill="none" aria-hidden="true">
+      <path
+        d="M3 19 10.5 7 18 19H3Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.5 7v12M3 19l7.5-6 7.5 6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22.5 19v-7M19.5 15l3-3 3 3M20 11.5l2.5-2.5 2.5 2.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const STATUS_CLASS = {
+  Ocupada: "is-occupied",
+  Disponible: "is-available",
+  Mantenimiento: "is-maintenance",
+};
+
+export function Availability({ items, onShowToast }) {
+  const availableCount = items.filter((item) => item.status === "Disponible").length;
+  const occupiedCount = items.filter((item) => item.status === "Ocupada").length;
+  const maintenanceCount = items.filter(
+    (item) => item.status === "Mantenimiento"
+  ).length;
+
+  const handleCardClick = (item) => {
+    if (onShowToast) {
+      onShowToast(`${item.name}: ${item.status}.`);
+    }
+  };
+
+  return (
+    <>
+      <div className="date-row">
+        <div className="date-display">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect
+              x="3.5"
+              y="5"
+              width="17"
+              height="16"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.6"
+            />
+            <path
+              d="M7.5 3v4M16.5 3v4M4 9h16M8 13h2M13 13h2M8 17h2"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span>Sábado, 21 de noviembre de 2026</span>
+          <span className="today-pill">Hoy</span>
+        </div>
+      </div>
+
+      <section className="availability-section" aria-label="Estado de los alojamientos">
+        <div className="availability-header">
+          <h2>Estado de los alojamientos</h2>
+          <p className="availability-summary">
+            {availableCount} disponibles · {occupiedCount} ocupados · {maintenanceCount} en
+            mantenimiento. Estado operativo actual, no calendario futuro.
+          </p>
+        </div>
+
+        <div className="availability-grid">
+          {items.map((item) => {
+            const stateClass = STATUS_CLASS[item.status] || "is-available";
+            return (
+              <article
+                key={item.id}
+                className={`unit-card ${stateClass}`}
+                onClick={() => handleCardClick(item)}
+              >
+                <div className="unit-card__icon">
+                  <AccommodationIcon />
+                </div>
+
+                <h3 className="unit-card__title">{item.name}</h3>
+                <span className="unit-card__status">{item.status}</span>
+
+                {item.status === "Ocupada" ? (
+                  <div className="unit-card__meta">
+                    <strong>{item.guest}</strong>
+                    <span>{item.checkout}</span>
+                  </div>
+                ) : (
+                  <div className="unit-card__meta">
+                    <span>{item.note}</span>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <footer className="dashboard-footer">
+        <span>Tierra Adentro · Administración</span>
+        <span>Datos ilustrativos de demostración</span>
+      </footer>
+    </>
+  );
+}
