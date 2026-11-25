@@ -1,3 +1,13 @@
+import { useEffect, useState } from "react";
+
+const STATUS_OPTIONS = ["Disponible", "Ocupada", "Mantenimiento"];
+
+const STATUS_CLASS = {
+  Ocupada: "is-occupied",
+  Disponible: "is-available",
+  Mantenimiento: "is-maintenance",
+};
+
 function AccommodationIcon() {
   return (
     
@@ -28,23 +38,32 @@ function AccommodationIcon() {
   );
 }
 
-const STATUS_CLASS = {
-  Ocupada: "is-occupied",
-  Disponible: "is-available",
-  Mantenimiento: "is-maintenance",
-};
+export function Availability({ items, onUpdateStatus }) {
+  const [openMenuId, setOpenMenuId] = useState(null);
 
-export function Availability({ items, onShowToast }) {
+  useEffect(() => {
+    if (openMenuId === null) return;
+
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".unit-status-selector")) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openMenuId]);
+
   const availableCount = items.filter((item) => item.status === "Disponible").length;
   const occupiedCount = items.filter((item) => item.status === "Ocupada").length;
   const maintenanceCount = items.filter(
     (item) => item.status === "Mantenimiento"
   ).length;
 
-  const handleCardClick = (item) => {
-    if (onShowToast) {
-      onShowToast(`${item.name}: ${item.status}.`);
-    }
+  const handleSelectOption = (item, newStatus) => {
+    setOpenMenuId(null);
+    if (item.status === newStatus) return;
+    onUpdateStatus(item.id, newStatus);
   };
 
   return (
@@ -85,27 +104,68 @@ export function Availability({ items, onShowToast }) {
         <div className="availability-grid">
           {items.map((item) => {
             const stateClass = STATUS_CLASS[item.status] || "is-available";
+            const isMenuOpen = openMenuId === item.id;
+
             return (
-              <article
-                key={item.id}
-                className={`unit-card ${stateClass}`}
-                onClick={() => handleCardClick(item)}
-              >
-                <div className="unit-card__icon">
-                  <AccommodationIcon />
+              <article key={item.id} className={`unit-card ${stateClass}`}>
+                <div className="unit-card__top">
+                  <div className="unit-card__icon">
+                    <AccommodationIcon />
+                  </div>
+
+                  <div className="unit-status-selector">
+                    <button
+                      type="button"
+                      className="unit-status-trigger"
+                      aria-haspopup="listbox"
+                      aria-expanded={isMenuOpen}
+                      onClick={() =>
+                        setOpenMenuId((prev) => (prev === item.id ? null : item.id))
+                      }
+                    >
+                      <span>{item.status}</span>
+                      <span className="unit-status-caret">⌄</span>
+                    </button>
+
+                    {isMenuOpen && (
+                      <div className="unit-status-menu" role="listbox">
+                        {STATUS_OPTIONS.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`unit-status-option ${
+                              item.status === option ? "is-current" : ""
+                            }`}
+                            onClick={() => handleSelectOption(item, option)}
+                          >
+                            <i
+                              className={`unit-option-dot ${
+                                STATUS_CLASS[option] || ""
+                              }`}
+                            />
+                            <span>{option}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <h3 className="unit-card__title">{item.name}</h3>
-                <span className="unit-card__status">{item.status}</span>
 
                 {item.status === "Ocupada" ? (
                   <div className="unit-card__meta">
-                    <strong>{item.guest}</strong>
-                    <span>{item.checkout}</span>
+                    <strong>{item.guest || "Huésped asignado"}</strong>
+                    <span>{item.checkout || "Estadía en curso"}</span>
                   </div>
                 ) : (
                   <div className="unit-card__meta">
-                    <span>{item.note}</span>
+                    <span>
+                      {item.note ||
+                        (item.status === "Mantenimiento"
+                          ? "En revisión / mantenimiento"
+                          : "Lista para recibir huéspedes")}
+                    </span>
                   </div>
                 )}
               </article>

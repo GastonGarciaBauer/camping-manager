@@ -39,7 +39,8 @@ export function AdminLayout({
               type="button"
               onClick={onOpenNewReservation}
             >
-              <span>＋</span> Nueva reserva
+              <span>+</span>
+              Nueva reserva
             </button>
           </div>
         </div>
