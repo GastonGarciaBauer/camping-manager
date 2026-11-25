@@ -1,6 +1,6 @@
 <?php
 // backend/controllers/AccommodationController.php
-require_once __DIR__ . '/../models/Accommodation.php';
+require_once __DIR__ . '/../models/accommodation.php';
 
 class AccommodationController {
     private $accommodationModel;

@@ -1,5 +1,5 @@
 <?php
-// backend/models/Admin.php
+// backend/models/admin.php
 
 class Admin {
     private $conn;

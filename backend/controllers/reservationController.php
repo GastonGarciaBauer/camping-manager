@@ -1,6 +1,6 @@
 <?php
 // backend/controllers/ReservationController.php
-require_once __DIR__ . '/../models/Reservation.php';
+require_once __DIR__ . '/../models/reservation.php';
 
 class ReservationController {
     private $reservationModel;

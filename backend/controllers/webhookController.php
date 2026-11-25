@@ -1,7 +1,7 @@
 <?php
 // backend/controllers/WebhookController.php
 require_once __DIR__ . '/../config/mercadopago.php';
-require_once __DIR__ . '/../models/Payment.php';
+require_once __DIR__ . '/../models/payment.php';
 
 class WebhookController {
     private $paymentModel;

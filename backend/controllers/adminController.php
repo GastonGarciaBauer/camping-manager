@@ -1,6 +1,6 @@
 <?php
 // backend/controllers/AdminController.php
-require_once __DIR__ . '/../models/Admin.php';
+require_once __DIR__ . '/../models/admin.php';
 
 class AdminController {
     private $adminModel;

@@ -1,8 +1,8 @@
 <?php
 // backend/controllers/PaymentController.php
 require_once __DIR__ . '/../config/mercadopago.php';
-require_once __DIR__ . '/../models/Payment.php';
-require_once __DIR__ . '/../models/Reservation.php';
+require_once __DIR__ . '/../models/payment.php';
+require_once __DIR__ . '/../models/reservation.php';
 
 class PaymentController {
     private $paymentModel;
