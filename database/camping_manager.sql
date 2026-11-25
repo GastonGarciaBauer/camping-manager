@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3307
--- Tiempo de generación: 15-11-2026 a las 00:28:31
+-- Tiempo de generación: 25-11-2026 a las 19:29:16
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -35,6 +35,17 @@ CREATE TABLE `accommodations` (
   `tarifa_base_diaria` decimal(10,2) NOT NULL,
   `estado_operativo` enum('disponible','mantenimiento','fuera_de_servicio') DEFAULT 'disponible'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `accommodations`
+--
+
+INSERT INTO `accommodations` (`id`, `codigo_unidad`, `tipo_alojamiento`, `capacidad_personas`, `tarifa_base_diaria`, `estado_operativo`) VALUES
+(11, 'PAR-01', 'parcela_comun', 1, 15000.00, 'disponible'),
+(12, 'PAR-02', 'parcela_comun', 1, 15000.00, 'disponible'),
+(13, 'CAB-01', 'cabana_1_ambiente', 2, 45000.00, 'disponible'),
+(14, 'CAB-02', 'cabana_1_ambiente', 2, 45000.00, 'disponible'),
+(15, 'CAB-03', 'cabana_2_ambientes', 3, 65000.00, 'disponible');
 
 -- --------------------------------------------------------
 
@@ -71,6 +82,13 @@ CREATE TABLE `guests` (
   `pais_localidad` varchar(100) NOT NULL,
   `observaciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `guests`
+--
+
+INSERT INTO `guests` (`id`, `nombre`, `apellido`, `dni`, `telefono`, `email`, `pais_localidad`, `observaciones`) VALUES
+(5, 'Gastón', 'García', '37170734', '01541724106', 'gaston.garcia.bauer89@gmail.com', 'Ciudad Autónoma de Buenos Aires', '');
 
 -- --------------------------------------------------------
 
@@ -123,6 +141,15 @@ CREATE TABLE `reservations` (
   `vigencia_solicitud_hasta` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `reservations`
+--
+
+INSERT INTO `reservations` (`id`, `codigo_privado`, `guest_id`, `accommodation_id`, `fecha_ingreso`, `fecha_salida`, `cantidad_personas`, `estado_reserva`, `vigencia_solicitud_hasta`) VALUES
+(20, 'CMP-177E92', 5, 15, '2026-11-19', '2026-11-20', 2, 'pendiente_pago', '2026-11-19 22:51:22'),
+(21, 'CMP-36E46B', 5, 12, '2026-11-21', '2026-11-26', 2, 'pendiente_pago', '2026-11-22 03:16:39'),
+(22, 'CMP-D7C40C', 5, 12, '2026-11-21', '2026-11-27', 2, 'pendiente_pago', '2026-11-22 03:39:48');
+
 -- --------------------------------------------------------
 
 --
@@ -137,6 +164,15 @@ CREATE TABLE `reservation_addons` (
   `precio_diario_unitario` decimal(10,2) NOT NULL,
   `subtotal` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `reservation_addons`
+--
+
+INSERT INTO `reservation_addons` (`id`, `reservation_id`, `tipo_adicional`, `cantidad_dias`, `precio_diario_unitario`, `subtotal`) VALUES
+(18, 21, 'estacionamiento', 5, 1500.00, 7500.00),
+(19, 21, 'alquiler_carpa', 5, 3000.00, 15000.00),
+(20, 22, 'alquiler_carpa', 6, 3000.00, 18000.00);
 
 -- --------------------------------------------------------
 
@@ -249,7 +285,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `accommodations`
 --
 ALTER TABLE `accommodations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `employees`
@@ -261,7 +297,7 @@ ALTER TABLE `employees`
 -- AUTO_INCREMENT de la tabla `guests`
 --
 ALTER TABLE `guests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `payments`
@@ -279,13 +315,13 @@ ALTER TABLE `payment_incidents`
 -- AUTO_INCREMENT de la tabla `reservations`
 --
 ALTER TABLE `reservations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT de la tabla `reservation_addons`
 --
 ALTER TABLE `reservation_addons`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `suppliers`
