@@ -4,6 +4,18 @@ import { OccupancyCard } from "../components/resumen/OccupancyCard";
 import { MovementsTable } from "../components/resumen/MovementsTable";
 import { TasksCard } from "../components/resumen/TasksCard";
 
+function formatTodayDate() {
+  const formatted = new Intl.DateTimeFormat("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date());
+
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
 export function ResumenPage({
   resumenData,
   incomePeriod,
@@ -24,7 +36,7 @@ export function ResumenPage({
             <rect x="3.5" y="5" width="17" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
             <path d="M7.5 3v4M16.5 3v4M4 9h16M8 13h2M13 13h2M8 17h2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
-          <span>Sábado, 21 de noviembre de 2026</span>
+          <span>{formatTodayDate()}</span>
           <span className="today-pill">Hoy</span>
         </div>
       </div>

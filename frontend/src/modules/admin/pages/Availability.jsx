@@ -8,6 +8,18 @@ const STATUS_CLASS = {
   Mantenimiento: "is-maintenance",
 };
 
+function formatTodayDate() {
+  const formatted = new Intl.DateTimeFormat("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date());
+
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
 function AccommodationIcon() {
   return (
     
@@ -87,7 +99,7 @@ export function Availability({ items, onUpdateStatus }) {
               strokeLinecap="round"
             />
           </svg>
-          <span>Sábado, 21 de noviembre de 2026</span>
+          <span>{formatTodayDate()}</span>
           <span className="today-pill">Hoy</span>
         </div>
       </div>
