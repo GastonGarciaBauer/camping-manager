@@ -50,22 +50,13 @@ class AdminController {
                 $postAction = $input['action'] ?? '';
 
                 if ($postAction === 'login') {
+                    $username = $input['user'] ?? ($input['email'] ?? '');
                     $result = $this->adminModel->loginAdmin(
-                        $input['email'] ?? '',
+                        $username,
                         $input['password'] ?? ''
                     );
                     if (isset($result['error'])) {
                         http_response_code(401);
-                    }
-                    echo json_encode($result);
-                } elseif ($postAction === 'register_admin') {
-                    $result = $this->adminModel->registerAdmin(
-                        $input['email'] ?? '',
-                        $input['password'] ?? '',
-                        $input['repeat_password'] ?? ''
-                    );
-                    if (isset($result['error'])) {
-                        http_response_code(400);
                     }
                     echo json_encode($result);
                 } elseif ($postAction === 'movement' && isset($input['reservation_id'], $input['movement_action'])) {

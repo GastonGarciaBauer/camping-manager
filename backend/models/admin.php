@@ -8,11 +8,11 @@ class Admin {
         $this->conn = $db;
     }
 
-    // Garantiza que exista el usuario administrador de prueba 'admin' / 'admin' con bcrypt
+    // Garantiza que exista el usuario 'admin' con contraseña 'admin' hasheada en bcrypt
     public function ensureDefaultAdmin() {
-        $defaultEmail = 'admin';
-        $stmt = $this->conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-        $stmt->bind_param("s", $defaultEmail);
+        $defaultUser = 'admin';
+        $stmt = $this->conn->prepare("SELECT id FROM users WHERE `user` = ? LIMIT 1");
+        $stmt->bind_param("s", $defaultUser);
         $stmt->execute();
         $res = $stmt->get_result();
         $exists = $res && $res->num_rows > 0;
@@ -20,32 +20,36 @@ class Admin {
 
         if (!$exists) {
             $hash = password_hash('admin', PASSWORD_BCRYPT);
-            $ins = $this->conn->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
-            $ins->bind_param("ss", $defaultEmail, $hash);
+            $ins = $this->conn->prepare("INSERT INTO users (`user`, `password_hash`) VALUES (?, ?)");
+            $ins->bind_param("ss", $defaultUser, $hash);
             $ins->execute();
             $ins->close();
         }
     }
 
-    // Validar login de administrador
-    public function loginAdmin($email, $password) {
+    // Validar login de administrador (solo 'admin' / 'admin')
+    public function loginAdmin($username, $password) {
         $this->ensureDefaultAdmin();
 
-        $cleanEmail = strtolower(trim((string)$email));
+        $cleanUser = strtolower(trim((string)$username));
         $plainPassword = (string)$password;
 
-        if ($cleanEmail === '' || $plainPassword === '') {
-            return ["error" => "Completá el email/usuario y la contraseña."];
+        if ($cleanUser === '' || $plainPassword === '') {
+            return ["error" => "Completá el usuario y la contraseña."];
         }
 
-        $stmt = $this->conn->prepare("SELECT id, email, password_hash FROM users WHERE LOWER(email) = ? LIMIT 1");
-        $stmt->bind_param("s", $cleanEmail);
+        if ($cleanUser !== 'admin') {
+            return ["error" => "Credenciales incorrectas."];
+        }
+
+        $stmt = $this->conn->prepare("SELECT id, `user`, password_hash FROM users WHERE LOWER(`user`) = ? LIMIT 1");
+        $stmt->bind_param("s", $cleanUser);
         $stmt->execute();
         $result = $stmt->get_result();
-        $user = $result ? $result->fetch_assoc() : null;
+        $row = $result ? $result->fetch_assoc() : null;
         $stmt->close();
 
-        if (!$user || !password_verify($plainPassword, $user['password_hash'])) {
+        if (!$row || !password_verify($plainPassword, $row['password_hash'])) {
             return ["error" => "Credenciales incorrectas."];
         }
 
@@ -53,67 +57,15 @@ class Admin {
             session_start();
         }
         $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_user_id'] = (int)$user['id'];
-        $_SESSION['admin_email'] = $user['email'];
+        $_SESSION['admin_user_id'] = (int)$row['id'];
+        $_SESSION['admin_user'] = $row['user'];
 
         return [
             "status" => "success",
             "message" => "Sesión iniciada correctamente.",
             "user" => [
-                "id" => (int)$user['id'],
-                "email" => $user['email']
-            ]
-        ];
-    }
-
-    // Registrar un nuevo administrador con contraseña hasheada en bcrypt
-    public function registerAdmin($email, $password, $repeatPassword) {
-        $this->ensureDefaultAdmin();
-
-        $cleanEmail = strtolower(trim((string)$email));
-        $pass = (string)$password;
-        $repeat = (string)$repeatPassword;
-
-        if ($cleanEmail === '' || $pass === '' || $repeat === '') {
-            return ["error" => "Completá todos los campos."];
-        }
-
-        if ($pass !== $repeat) {
-            return ["error" => "Las contraseñas no coinciden."];
-        }
-
-        if (strlen($pass) < 4) {
-            return ["error" => "La contraseña debe tener al menos 4 caracteres."];
-        }
-
-        $stmtCheck = $this->conn->prepare("SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1");
-        $stmtCheck->bind_param("s", $cleanEmail);
-        $stmtCheck->execute();
-        $exists = $stmtCheck->get_result()->num_rows > 0;
-        $stmtCheck->close();
-
-        if ($exists) {
-            return ["error" => "Ya existe un administrador registrado con ese email o usuario."];
-        }
-
-        $passwordHash = password_hash($pass, PASSWORD_BCRYPT);
-        $stmtInsert = $this->conn->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
-        $stmtInsert->bind_param("ss", $cleanEmail, $passwordHash);
-
-        if (!$stmtInsert->execute()) {
-            $stmtInsert->close();
-            return ["error" => "No se pudo guardar el administrador en la base de datos."];
-        }
-
-        $newId = (int)$this->conn->insert_id;
-        $stmtInsert->close();
-
-        return [
-            "status" => "success",
-            "message" => "Administrador agregado correctamente.",
-            "user" => [
-                "id" => $newId,
-                "email" => $cleanEmail
+                "id" => (int)$row['id'],
+                "user" => $row['user']
             ]
         ];
     }
