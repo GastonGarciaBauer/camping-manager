@@ -7,28 +7,22 @@ import "../styles/admin-login.css";
 export function AdminLoginPage({ onLoginSuccess, onShowToast }) {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
-  const [submittingLogin, setSubmittingLogin] = useState(false);
-
-  const [showAddAdmin, setShowAddAdmin] = useState(false);
-  const [newAdminEmail, setNewAdminEmail] = useState("");
-  const [newAdminPassword, setNewAdminPassword] = useState("");
-  const [newAdminRepeatPassword, setNewAdminRepeatPassword] = useState("");
-  const [submittingRegister, setSubmittingRegister] = useState(false);
-
+  const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [registerMsg, setRegisterMsg] = useState("");
 
-  const handleLoginSubmit = async (event) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setErrorMsg("");
-    setSubmittingLogin(true);
+    setSubmitting(true);
 
     try {
       const response = await api.post("/index.php?endpoint=admin", {
         action: "login",
-        email: email.trim(),
+        user: user.trim(),
         password,
       });
 
@@ -36,7 +30,7 @@ export function AdminLoginPage({ onLoginSuccess, onShowToast }) {
       if (data.status === "success") {
         localStorage.setItem(
           "tierra_adentro_admin",
-          JSON.stringify(data.user || { email: email.trim() })
+          JSON.stringify(data.user || { user: user.trim() })
         );
         if (onShowToast) {
           onShowToast("Bienvenido a Tierra Adentro.");
@@ -52,46 +46,7 @@ export function AdminLoginPage({ onLoginSuccess, onShowToast }) {
       const apiError = error.response?.data?.error;
       setErrorMsg(apiError || "Error de conexión con el servidor.");
     } finally {
-      setSubmittingLogin(false);
-    }
-  };
-
-  const handleRegisterAdmin = async (event) => {
-    event.preventDefault();
-    setRegisterMsg("");
-    setErrorMsg("");
-
-    if (newAdminPassword !== newAdminRepeatPassword) {
-      setRegisterMsg("Las contraseñas no coinciden.");
-      return;
-    }
-
-    setSubmittingRegister(true);
-    try {
-      const response = await api.post("/index.php?endpoint=admin", {
-        action: "register_admin",
-        email: newAdminEmail.trim(),
-        password: newAdminPassword,
-        repeat_password: newAdminRepeatPassword,
-      });
-
-      const data = response.data || {};
-      if (data.status === "success") {
-        setNewAdminEmail("");
-        setNewAdminPassword("");
-        setNewAdminRepeatPassword("");
-        setRegisterMsg("Administrador guardado correctamente en la base de datos.");
-        if (onShowToast) {
-          onShowToast("Nuevo administrador agregado.");
-        }
-      } else {
-        setRegisterMsg(data.error || "No se pudo agregar el administrador.");
-      }
-    } catch (error) {
-      const apiError = error.response?.data?.error;
-      setRegisterMsg(apiError || "Error al guardar el administrador.");
-    } finally {
-      setSubmittingRegister(false);
+      setSubmitting(false);
     }
   };
 
@@ -101,17 +56,17 @@ export function AdminLoginPage({ onLoginSuccess, onShowToast }) {
         <div className="login-header">
           <span className="login-overline">TIERRA ADENTRO · ADMINISTRACIÓN</span>
           <h1>Ingresar al panel</h1>
-          <p>Accedé con tus credenciales para gestionar el camping.</p>
+          <p>Ingresá con usuario y contraseña para acceder.</p>
         </div>
 
-        <form className="login-form" onSubmit={handleLoginSubmit}>
+        <form className="login-form" onSubmit={handleSubmit}>
           <label className="login-field">
-            <span>Email</span>
+            <span>Usuario</span>
             <input
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin o correo@ejemplo.com"
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
+              placeholder="tu usuario"
               autoComplete="username"
               required
             />
@@ -119,14 +74,53 @@ export function AdminLoginPage({ onLoginSuccess, onShowToast }) {
 
           <label className="login-field">
             <span>Contraseña</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="current-password"
-              required
-            />
+            <div className="password-input-wrap">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="tu contraseña"
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Ver contraseña"
+                }
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 5.09A10.94 10.94 0 0 1 12 4.9c5 0 9.27 3.11 11 7.1a11.77 11.77 0 0 1-3.17 4.37M6.61 6.61A11.84 11.84 0 0 0 1 12c1.73 3.99 6 7.1 11 7.1 1.61 0 3.14-.33 4.53-.92"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M1 12s4-7.1 11-7.1S23 12 23 12s-4 7.1-11 7.1S1 12 1 12Z"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="3"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
           </label>
 
           {errorMsg && <p className="login-alert is-error">{errorMsg}</p>}
@@ -134,87 +128,11 @@ export function AdminLoginPage({ onLoginSuccess, onShowToast }) {
           <button
             type="submit"
             className="login-primary-btn"
-            disabled={submittingLogin}
+            disabled={submitting}
           >
-            {submittingLogin ? "Ingresando..." : "Iniciar sesión"}
+            {submitting ? "Ingresando..." : "Iniciar sesión"}
           </button>
         </form>
-
-        <div className="login-demo-hint">
-          <span>
-            Usuario de prueba: <strong>admin</strong> · Contraseña: <strong>admin</strong>
-          </span>
-        </div>
-
-        <div className="login-divider" />
-
-        <div className="add-admin-section">
-          <button
-            type="button"
-            className="login-secondary-btn"
-            onClick={() => {
-              setShowAddAdmin((prev) => !prev);
-              setRegisterMsg("");
-            }}
-          >
-            {showAddAdmin ? "Ocultar formulario" : "+ Agregar administrador"}
-          </button>
-
-          {showAddAdmin && (
-            <form className="add-admin-form" onSubmit={handleRegisterAdmin}>
-              <label className="login-field">
-                <span>Email</span>
-                <input
-                  type="text"
-                  value={newAdminEmail}
-                  onChange={(e) => setNewAdminEmail(e.target.value)}
-                  placeholder="nuevo.admin@ejemplo.com"
-                  required
-                />
-              </label>
-
-              <label className="login-field">
-                <span>Contraseña</span>
-                <input
-                  type="password"
-                  value={newAdminPassword}
-                  onChange={(e) => setNewAdminPassword(e.target.value)}
-                  placeholder="Contraseña"
-                  required
-                />
-              </label>
-
-              <label className="login-field">
-                <span>Repetir contraseña</span>
-                <input
-                  type="password"
-                  value={newAdminRepeatPassword}
-                  onChange={(e) => setNewAdminRepeatPassword(e.target.value)}
-                  placeholder="Repetir contraseña"
-                  required
-                />
-              </label>
-
-              {registerMsg && (
-                <p
-                  className={`login-alert ${
-                    registerMsg.includes("correctamente") ? "is-success" : "is-error"
-                  }`}
-                >
-                  {registerMsg}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                className="login-save-btn"
-                disabled={submittingRegister}
-              >
-                {submittingRegister ? "Guardando..." : "Guardar administrador"}
-              </button>
-            </form>
-          )}
-        </div>
       </div>
     </div>
   );

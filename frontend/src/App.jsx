@@ -9,7 +9,7 @@ function isAdminAuthenticated() {
     const raw = localStorage.getItem("tierra_adentro_admin");
     if (!raw) return false;
     const parsed = JSON.parse(raw);
-    return Boolean(parsed && (parsed.email || parsed.id));
+    return Boolean(parsed && (parsed.user || parsed.email || parsed.id));
   } catch {
     return false;
   }

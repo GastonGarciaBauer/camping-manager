@@ -9,7 +9,7 @@
 
 .login-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   padding: 32px 28px;
   border-radius: 20px;
   background: var(--paper);
@@ -41,8 +41,7 @@
   font-size: 0.94rem;
 }
 
-.login-form,
-.add-admin-form {
+.login-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -83,70 +82,17 @@
   color: var(--paper);
   font-weight: 600;
   font-size: 0.95rem;
-  transition: background 0.15s ease;
+  transition: background 0.30s ease, color 0.30s ease;
 }
 
 .login-primary-btn:hover:not(:disabled) {
-  background: var(--forest-2);
+  background: var(--gold);
+  color: var(--forest);
 }
 
 .login-primary-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
-}
-
-.login-demo-hint {
-  margin-top: 14px;
-  text-align: center;
-  font-size: 0.83rem;
-  color: var(--muted);
-}
-
-.login-demo-hint strong {
-  color: var(--forest);
-}
-
-.login-divider {
-  height: 1px;
-  background: var(--line);
-  margin: 20px 0 16px;
-}
-
-.login-secondary-btn {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: var(--cream);
-  color: var(--forest);
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.login-secondary-btn:hover {
-  background: #eae6da;
-  border-color: var(--sage);
-}
-
-.add-admin-form {
-  margin-top: 14px;
-}
-
-.login-save-btn {
-  width: 100%;
-  margin-top: 4px;
-  padding: 11px 16px;
-  border-radius: 10px;
-  border: none;
-  background: var(--gold);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 0.92rem;
-}
-
-.login-save-btn:hover:not(:disabled) {
-  filter: brightness(0.96);
 }
 
 .login-alert {
@@ -163,8 +109,36 @@
   border: 1px solid rgba(185, 28, 28, 0.22);
 }
 
-.login-alert.is-success {
-  background: rgba(169, 185, 159, 0.28);
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrap input {
+  padding-right: 42px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+
+.password-toggle-btn:hover {
   color: var(--forest);
-  border: 1px solid var(--sage);
+}
+
+.password-toggle-btn svg {
+  width: 18px;
+  height: 18px;
 }
