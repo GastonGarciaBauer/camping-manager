@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+function getStoredAdminEmail() {
+  try {
+    const raw = localStorage.getItem("tierra_adentro_admin");
+    if (!raw) return "admin";
+    const parsed = JSON.parse(raw);
+    return parsed?.email || "admin";
+  } catch {
+    return "admin";
+  }
+}
 
 export function Topbar({ activeSection }) {
+  const navigate = useNavigate();
   const [popoverType, setPopoverType] = useState(null);
 
   useEffect(() => {
@@ -19,6 +32,14 @@ export function Topbar({ activeSection }) {
   const togglePopover = (type) => {
     setPopoverType((prev) => (prev === type ? null : type));
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("tierra_adentro_admin");
+    setPopoverType(null);
+    navigate("/admin/login", { replace: true });
+  };
+
+  const adminEmail = getStoredAdminEmail();
 
   return (
     <header className="topbar">
@@ -70,7 +91,25 @@ export function Topbar({ activeSection }) {
               <>
                 <strong>Administración</strong>
                 <p>Camping Tierra Adentro</p>
-                <p>Perfil de demostración</p>
+                <p>Usuario: {adminEmail}</p>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  style={{
+                    marginTop: "10px",
+                    width: "100%",
+                    padding: "7px 10px",
+                    borderRadius: "8px",
+                    border: "1px solid #dfddcf",
+                    background: "#f3f0e7",
+                    color: "#1d3e33",
+                    fontWeight: 600,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cerrar sesión
+                </button>
               </>
             )}
           </div>
