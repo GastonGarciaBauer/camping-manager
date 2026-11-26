@@ -1,9 +1,12 @@
 export function TasksPage({
   tasks,
+  isLiveData,
   onToggleTask,
   onOpenNewTask,
   onShowToast,
 }) {
+  const list = Array.isArray(tasks) ? tasks : [];
+
   return (
     <>
       <div className="date-row">
@@ -53,7 +56,7 @@ export function TasksPage({
         </div>
 
         <ul className="tasks-page-list">
-          {tasks.map((task) => {
+          {list.map((task) => {
             const isDone = Boolean(task.done);
             return (
               <li
@@ -83,7 +86,8 @@ export function TasksPage({
                   <div className="tasks-page-info">
                     <strong className="tasks-page-title">{task.title}</strong>
                     <span className="tasks-page-sub">
-                      {task.sector} · Prioridad {task.priority}
+                      {task.sector || task.zone || "Sector común"} · Prioridad{" "}
+                      {task.priority || "Media"}
                     </span>
                   </div>
                 </label>
@@ -100,14 +104,18 @@ export function TasksPage({
           })}
         </ul>
 
-        {tasks.length === 0 && (
+        {list.length === 0 && (
           <p className="empty-movements">No hay tareas cargadas para hoy.</p>
         )}
       </article>
 
       <footer className="dashboard-footer">
         <span>Tierra Adentro · Administración</span>
-        <span>Demo interactiva · Sin conexión a datos reales</span>
+        <span>
+          {isLiveData
+            ? "Conectado a MySQL · camping_manager"
+            : "Demo interactiva · Sin conexión a datos reales"}
+        </span>
       </footer>
     </>
   );

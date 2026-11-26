@@ -5,6 +5,10 @@ import { MovementsTable } from "../components/resumen/MovementsTable";
 import { TasksCard } from "../components/resumen/TasksCard";
 
 export function ResumenPage({
+  resumenData,
+  incomePeriod,
+  onChangeIncomePeriod,
+  isLiveData,
   movements,
   onUpdateMovement,
   tasks,
@@ -25,11 +29,19 @@ export function ResumenPage({
         </div>
       </div>
 
-      <StatsGrid />
+      <StatsGrid kpis={resumenData?.kpis} />
 
       <section className="analytics-grid">
-        <IncomeChart onShowToast={onShowToast} />
-        <OccupancyCard onNavigateAvailability={() => onNavigateSection("Disponibilidad")} />
+        <IncomeChart
+          chartData={resumenData?.income_chart}
+          period={incomePeriod}
+          onChangePeriod={onChangeIncomePeriod}
+          onShowToast={onShowToast}
+        />
+        <OccupancyCard
+          occupancy={resumenData?.occupancy}
+          onNavigateAvailability={() => onNavigateSection("Disponibilidad")}
+        />
       </section>
 
       <section className="operations-grid">
@@ -48,7 +60,11 @@ export function ResumenPage({
 
       <footer className="dashboard-footer">
         <span>Tierra Adentro · Administración</span>
-        <span>Datos ilustrativos de demostración</span>
+        <span>
+          {isLiveData
+            ? "Conectado a MySQL · camping_manager"
+            : "Datos ilustrativos de demostración"}
+        </span>
       </footer>
     </>
   );

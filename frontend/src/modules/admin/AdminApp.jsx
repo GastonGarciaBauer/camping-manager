@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./styles/admin.css";
+import api from "../../services/api";
 import { INITIAL_MOVEMENTS, INITIAL_TASKS } from "./data/mockResumen";
 import { INITIAL_ACCOMMODATIONS } from "./data/mockDisponibilidad";
 import { INITIAL_PAYMENTS } from "./data/mockCobros";
@@ -43,7 +44,11 @@ const SECTION_HEADERS = {
 
 export default function AdminApp() {
   const [activeSection, setActiveSection] = useState("Resumen");
+  const [incomePeriod, setIncomePeriod] = useState("7d");
+  const [resumenData, setResumenData] = useState(null);
+  const [isLiveData, setIsLiveData] = useState(false);
   const [movements, setMovements] = useState(INITIAL_MOVEMENTS);
+  const [reservationsList, setReservationsList] = useState([]);
   const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [accommodations, setAccommodations] = useState(INITIAL_ACCOMMODATIONS);
   const [payments, setPayments] = useState(INITIAL_PAYMENTS);
@@ -53,17 +58,155 @@ export default function AdminApp() {
   const [toastMessage, setToastMessage] = useState("");
   const toastTimerRef = useRef(null);
 
-  const showToast = (message) => {
+  const showToast = useCallback((message) => {
     setToastMessage(message);
     window.clearTimeout(toastTimerRef.current);
     toastTimerRef.current = window.setTimeout(() => {
       setToastMessage("");
     }, 2600);
-  };
+  }, []);
 
   useEffect(() => {
     return () => window.clearTimeout(toastTimerRef.current);
   }, []);
+
+  const fetchResumen = useCallback(async (periodValue = "7d") => {
+    try {
+      const response = await api.get("/index.php", {
+        params: {
+          endpoint: "admin",
+          action: "resumen",
+          period: periodValue,
+        },
+      });
+
+      const payload = response.data?.data || response.data;
+      if (!payload || typeof payload !== "object") return;
+
+      setResumenData(payload);
+      setIsLiveData(true);
+
+      if (Array.isArray(payload.movements)) {
+        setMovements(payload.movements);
+      }
+      if (Array.isArray(payload.tasks)) {
+        setTasks(payload.tasks);
+      }
+    } catch (error) {
+      console.error("Error cargando resumen desde backend:", error);
+      setIsLiveData(false);
+    }
+  }, []);
+
+  const fetchReservations = useCallback(async () => {
+    try {
+      const response = await api.get("/index.php", {
+        params: {
+          endpoint: "admin",
+          action: "reservations",
+        },
+      });
+
+      const rows = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data;
+
+      if (Array.isArray(rows)) {
+        setReservationsList(rows);
+        setIsLiveData(true);
+      }
+    } catch (error) {
+      console.error("Error cargando reservas desde backend:", error);
+    }
+  }, []);
+
+  const fetchAccommodations = useCallback(async () => {
+    try {
+      const response = await api.get("/index.php", {
+        params: {
+          endpoint: "admin",
+          action: "accommodations",
+        },
+      });
+
+      const rows = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data;
+
+      if (Array.isArray(rows) && rows.length > 0) {
+        setAccommodations(rows);
+        setIsLiveData(true);
+      }
+    } catch (error) {
+      console.error("Error cargando alojamientos desde backend:", error);
+    }
+  }, []);
+
+  const fetchPendingPayments = useCallback(async () => {
+    try {
+      const response = await api.get("/index.php", {
+        params: {
+          endpoint: "admin",
+          action: "pending_payments",
+        },
+      });
+
+      const rows = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data;
+
+      if (Array.isArray(rows)) {
+        setPayments(rows);
+        setIsLiveData(true);
+      }
+    } catch (error) {
+      console.error("Error cargando cobros pendientes desde backend:", error);
+    }
+  }, []);
+
+  const fetchTasks = useCallback(async () => {
+    try {
+      const response = await api.get("/index.php", {
+        params: {
+          endpoint: "admin",
+          action: "tasks",
+        },
+      });
+
+      const rows = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data;
+
+      if (Array.isArray(rows)) {
+        setTasks(rows);
+        setIsLiveData(true);
+      }
+    } catch (error) {
+      console.error("Error cargando tareas desde backend:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === "Resumen") {
+      fetchResumen(incomePeriod);
+    } else if (activeSection === "Reservas") {
+      fetchReservations();
+    } else if (activeSection === "Disponibilidad") {
+      fetchAccommodations();
+    } else if (activeSection === "Cobros") {
+      fetchPendingPayments();
+    } else if (activeSection === "Tareas") {
+      fetchTasks();
+    }
+  }, [
+    activeSection,
+    incomePeriod,
+    fetchResumen,
+    fetchReservations,
+    fetchAccommodations,
+    fetchPendingPayments,
+    fetchTasks,
+  ]);
 
   const handleSelectSection = (sectionName, notifyDemo = true) => {
     setActiveSection(sectionName);
@@ -79,39 +222,106 @@ export default function AdminApp() {
     }
   };
 
-  const handleUpdateMovement = (id, patch) => {
+  const handleUpdateMovement = async (id, patch, movementAction = null) => {
     setMovements((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
     );
+    setReservationsList((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+    );
+
+    const inferredAction =
+      movementAction ||
+      (patch.action === "checkout"
+        ? "checkin"
+        : patch.action === "done"
+        ? "checkout"
+        : null);
+
+    if (!inferredAction) return;
+
+    try {
+      await api.post("/index.php?endpoint=admin", {
+        action: "movement",
+        reservation_id: id,
+        movement_action: inferredAction,
+      });
+
+      if (activeSection === "Resumen") {
+        await fetchResumen(incomePeriod);
+      } else if (activeSection === "Reservas") {
+        await fetchReservations();
+      }
+    } catch (error) {
+      console.error("Error guardando movimiento en BD:", error);
+      showToast("No se pudo sincronizar el movimiento con la BD.");
+    }
   };
 
-  const handleToggleTask = (id) => {
+  const handleToggleTask = async (id) => {
+    let nextDoneState = false;
+
     setTasks((prev) =>
       prev.map((task) => {
         if (task.id !== id) return task;
-        const nextDone = !task.done;
-        if (nextDone) {
+        nextDoneState = !task.done;
+        if (nextDoneState) {
           showToast("Tarea marcada como resuelta.");
         }
-        return { ...task, done: nextDone };
+        return { ...task, done: nextDoneState };
       })
     );
+
+    try {
+      await api.post("/index.php?endpoint=admin", {
+        action: "toggle_task",
+        task_id: id,
+      });
+      if (activeSection === "Resumen") {
+        await fetchResumen(incomePeriod);
+      } else if (activeSection === "Tareas") {
+        await fetchTasks();
+      }
+    } catch (error) {
+      console.error("Error actualizando tarea en BD:", error);
+      showToast("No se pudo actualizar la tarea en la BD.");
+    }
   };
 
-  const handleAddTask = ({ title, sector, priority }) => {
-    const newTask = {
+  const handleAddTask = async ({ title, sector, priority }) => {
+    const optimisticTask = {
       id: Date.now(),
       title,
       sector,
+      zone: sector,
       priority,
+      priorityLevel: priority.toLowerCase(),
       done: false,
     };
 
-    setTasks((prev) => [newTask, ...prev]);
+    setTasks((prev) => [optimisticTask, ...prev]);
     showToast(`Tarea "${title}" agregada.`);
+
+    try {
+      await api.post("/index.php?endpoint=admin", {
+        action: "create_task",
+        title,
+        sector,
+        priority,
+      });
+
+      if (activeSection === "Tareas") {
+        await fetchTasks();
+      } else if (activeSection === "Resumen") {
+        await fetchResumen(incomePeriod);
+      }
+    } catch (error) {
+      console.error("Error guardando nueva tarea en BD:", error);
+      showToast("No se pudo guardar la tarea en la BD.");
+    }
   };
 
-  const handleUpdateAccommodationStatus = (id, newStatus) => {
+  const handleUpdateAccommodationStatus = async (id, newStatus) => {
     const target = accommodations.find((unit) => unit.id === id);
 
     setAccommodations((prev) =>
@@ -146,12 +356,41 @@ export default function AdminApp() {
     if (target) {
       showToast(`${target.name} actualizada a "${newStatus}".`);
     }
+
+    if (newStatus === "Ocupada") {
+      return;
+    }
+
+    try {
+      await api.post("/index.php?endpoint=admin", {
+        action: "update_accommodation",
+        accommodation_id: id,
+        status: newStatus,
+      });
+      await fetchAccommodations();
+    } catch (error) {
+      console.error("Error actualizando alojamiento en BD:", error);
+      showToast("No se pudo guardar el estado del alojamiento en la BD.");
+    }
   };
 
-  const handleCollectPayment = (id) => {
+  const handleCollectPayment = async (id, balance = null) => {
     setPayments((prev) =>
       prev.map((item) => (item.id === id ? { ...item, paid: true } : item))
     );
+
+    try {
+      await api.post("/index.php?endpoint=admin", {
+        action: "collect_payment",
+        reservation_id: id,
+        monto: balance,
+        metodo_pago: "efectivo",
+      });
+      await fetchPendingPayments();
+    } catch (error) {
+      console.error("Error registrando cobro en BD:", error);
+      showToast("No se pudo registrar el cobro en la BD.");
+    }
   };
 
   const pendingTasksCount = tasks.filter((task) => !task.done).length;
@@ -171,6 +410,10 @@ export default function AdminApp() {
       >
         {activeSection === "Resumen" && (
           <ResumenPage
+            resumenData={resumenData}
+            incomePeriod={incomePeriod}
+            onChangeIncomePeriod={setIncomePeriod}
+            isLiveData={isLiveData}
             movements={movements}
             onUpdateMovement={handleUpdateMovement}
             tasks={tasks}
@@ -182,7 +425,7 @@ export default function AdminApp() {
 
         {activeSection === "Reservas" && (
           <ReservationPage
-            movements={movements}
+            reservations={reservationsList}
             onUpdateMovement={handleUpdateMovement}
             onShowToast={showToast}
           />
@@ -198,6 +441,7 @@ export default function AdminApp() {
         {activeSection === "Cobros" && (
           <Incomings
             payments={payments}
+            isLiveData={isLiveData}
             onCollectPayment={handleCollectPayment}
             onShowToast={showToast}
           />
@@ -206,22 +450,30 @@ export default function AdminApp() {
         {activeSection === "Tareas" && (
           <TasksPage
             tasks={tasks}
+            isLiveData={isLiveData}
             onToggleTask={handleToggleTask}
             onOpenNewTask={() => setTaskModalOpen(true)}
             onShowToast={showToast}
           />
         )}
-
-        {activeSection !== "Resumen" &&
-          activeSection !== "Reservas" &&
-          activeSection !== "Disponibilidad" &&
-          activeSection !== "Cobros" &&
-          activeSection !== "Tareas"}
       </AdminLayout>
 
       <ReservationModal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          if (activeSection === "Reservas") {
+            fetchReservations();
+          } else if (activeSection === "Resumen") {
+            fetchResumen(incomePeriod);
+          } else if (activeSection === "Disponibilidad") {
+            fetchAccommodations();
+          } else if (activeSection === "Cobros") {
+            fetchPendingPayments();
+          } else if (activeSection === "Tareas") {
+            fetchTasks();
+          }
+        }}
         onShowToast={showToast}
       />
 

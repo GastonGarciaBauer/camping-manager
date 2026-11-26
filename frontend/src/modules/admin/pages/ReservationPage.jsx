@@ -8,7 +8,7 @@ const TABS = [
 ];
 
 export function ReservationPage({
-  movements,
+  reservations,
   onUpdateMovement,
   onShowToast,
 }) {
@@ -16,34 +16,44 @@ export function ReservationPage({
   const [search, setSearch] = useState("");
 
   const query = search.trim().toLowerCase();
+  const list = Array.isArray(reservations) ? reservations : [];
 
-  const filteredReservations = movements.filter((item) => {
-    const matchesTab = filter === "todos" || item.categories.includes(filter);
+  const filteredReservations = list.filter((item) => {
+    const categories = Array.isArray(item.categories) ? item.categories : ["todos"];
+    const matchesTab = filter === "todos" || categories.includes(filter);
     const matchesSearch =
       !query ||
-      item.guest.toLowerCase().includes(query) ||
-      item.stay.toLowerCase().includes(query) ||
-      item.code.toLowerCase().includes(query);
+      (item.guest || "").toLowerCase().includes(query) ||
+      (item.stay || "").toLowerCase().includes(query) ||
+      (item.code || "").toLowerCase().includes(query);
 
     return matchesTab && matchesSearch;
   });
 
   const handleActionClick = (item) => {
     if (item.action === "checkin") {
-      onUpdateMovement(item.id, {
-        status: "Alojada",
-        statusType: "hosted",
-        categories: ["alojados"],
-        action: "checkout",
-      });
+      onUpdateMovement(
+        item.id,
+        {
+          status: "Alojada",
+          statusType: "hosted",
+          categories: ["todos", "alojados"],
+          action: "checkout",
+        },
+        "checkin"
+      );
       onShowToast(`Check-in registrado para ${item.guest}.`);
     } else if (item.action === "checkout") {
-      onUpdateMovement(item.id, {
-        status: "Finalizada",
-        statusType: "done",
-        categories: ["salidas"],
-        action: "done",
-      });
+      onUpdateMovement(
+        item.id,
+        {
+          status: "Finalizada",
+          statusType: "done",
+          categories: ["todos", "salidas"],
+          action: "done",
+        },
+        "checkout"
+      );
       onShowToast(`Check-out registrado para ${item.guest}.`);
     }
   };
@@ -220,15 +230,15 @@ export function ReservationPage({
           <span>
             {filteredReservations.length}{" "}
             {filteredReservations.length === 1
-              ? "registro de hoy"
-              : "registros de hoy"}
+              ? "reserva registrada"
+              : "reservas registradas"}
           </span>
         </div>
       </article>
 
       <footer className="dashboard-footer">
         <span>Tierra Adentro · Administración</span>
-        <span>Datos ilustrativos de demostración</span>
+        <span>Conectado a MySQL · camping_manager</span>
       </footer>
     </>
   );

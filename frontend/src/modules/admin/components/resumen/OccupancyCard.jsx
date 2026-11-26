@@ -1,4 +1,25 @@
-export function OccupancyCard({ onNavigateAvailability }) {
+export function OccupancyCard({ occupancy, onNavigateAvailability }) {
+  const occupied = Number(occupancy?.occupied || 0);
+  const available = Number(occupancy?.available || 0);
+  const maintenance = Number(occupancy?.maintenance || 0);
+  const total = Math.max(occupied + available + maintenance, 1);
+
+  const pct =
+    occupancy?.occupancy_pct !== undefined
+      ? Number(occupancy.occupancy_pct)
+      : Math.round((occupied / total) * 100);
+
+  const occupiedDeg = Math.round((occupied / total) * 360);
+  const maintenanceDeg = Math.round((maintenance / total) * 360);
+
+  const donutStyle = {
+    background: `conic-gradient(
+      #3f6054 0deg ${occupiedDeg}deg,
+      #e9bd59 ${occupiedDeg}deg ${occupiedDeg + maintenanceDeg}deg,
+      #e9e9dc ${occupiedDeg + maintenanceDeg}deg 360deg
+    )`,
+  };
+
   return (
     <article className="panel occupancy-panel">
       <div className="panel-heading">
@@ -10,10 +31,16 @@ export function OccupancyCard({ onNavigateAvailability }) {
       </div>
 
       <div className="occupancy-content">
-        <div className="donut" role="img" aria-label="31 por ciento de ocupación">
+        <div
+          className="donut"
+          style={donutStyle}
+          role="img"
+          aria-label={`${pct} por ciento de ocupación`}
+        >
           <div>
             <strong>
-              31<small>%</small>
+              {pct}
+              <small>%</small>
             </strong>
             <span>ocupación</span>
           </div>
@@ -23,17 +50,17 @@ export function OccupancyCard({ onNavigateAvailability }) {
           <div>
             <i className="legend-dot occupied" />
             <span>Ocupados</span>
-            <b>5</b>
+            <b>{occupied}</b>
           </div>
           <div>
             <i className="legend-dot available" />
             <span>Disponibles</span>
-            <b>10</b>
+            <b>{available}</b>
           </div>
           <div>
             <i className="legend-dot maintenance" />
             <span>Mantenimiento</span>
-            <b>1</b>
+            <b>{maintenance}</b>
           </div>
         </div>
       </div>

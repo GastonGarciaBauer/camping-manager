@@ -17,27 +17,36 @@ export function TasksCard({ tasks, onToggleTask, onNavigateTasks }) {
       </div>
 
       <ul className="task-list">
-        {tasks.map((task) => (
-          <li className="task-item" key={task.id}>
-            <label className="task-check">
-              <input
-                type="checkbox"
-                checked={task.done}
-                onChange={() => onToggleTask(task.id)}
-              />
-              <span className="checkmark" />
-              <span className="task-body">
-                <strong>{task.title}</strong>
-                <span className="task-meta">
-                  <span>{task.zone}</span>
-                  <span className={`priority-badge priority-${task.priorityLevel}`}>
-                    {task.priority}
+        {tasks.map((task) => {
+          const zoneLabel = task.zone || task.sector || "Sector común";
+          const level = (
+            task.priorityLevel ||
+            task.priority ||
+            "media"
+          ).toLowerCase();
+
+          return (
+            <li className="task-item" key={task.id}>
+              <label className="task-check">
+                <input
+                  type="checkbox"
+                  checked={task.done}
+                  onChange={() => onToggleTask(task.id)}
+                />
+                <span className="checkmark" />
+                <span className="task-body">
+                  <strong>{task.title}</strong>
+                  <span className="task-meta">
+                    <span>{zoneLabel}</span>
+                    <span className={`priority-badge priority-${level}`}>
+                      {task.priority}
+                    </span>
                   </span>
                 </span>
-              </span>
-            </label>
-          </li>
-        ))}
+              </label>
+            </li>
+          );
+        })}
       </ul>
 
       <button

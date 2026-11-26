@@ -11,28 +11,41 @@ function formatCurrency(amount) {
   return `$ ${Number(amount || 0).toLocaleString("es-AR")}`;
 }
 
-export function Incomings({ payments, onCollectPayment, onShowToast }) {
+export function Incomings({
+  payments,
+  isLiveData,
+  onCollectPayment,
+  onShowToast,
+}) {
   const [filter, setFilter] = useState("todos");
   const [search, setSearch] = useState("");
 
   const query = search.trim().toLowerCase();
 
-  const pendingPayments = payments.filter((item) => !item.paid);
-  const totalBalance = pendingPayments.reduce((acc, item) => acc + item.balance, 0);
+  const pendingPayments = (Array.isArray(payments) ? payments : []).filter(
+    (item) => !item.paid
+  );
+  const totalBalance = pendingPayments.reduce(
+    (acc, item) => acc + Number(item.balance || 0),
+    0
+  );
 
   const filteredPayments = pendingPayments.filter((item) => {
-    const matchesTab = filter === "todos" || item.categories.includes(filter);
+    const categories = Array.isArray(item.categories)
+      ? item.categories
+      : ["todos"];
+    const matchesTab = filter === "todos" || categories.includes(filter);
     const matchesSearch =
       !query ||
-      item.guest.toLowerCase().includes(query) ||
-      item.stay.toLowerCase().includes(query) ||
-      item.code.toLowerCase().includes(query);
+      (item.guest || "").toLowerCase().includes(query) ||
+      (item.stay || "").toLowerCase().includes(query) ||
+      (item.code || "").toLowerCase().includes(query);
 
     return matchesTab && matchesSearch;
   });
 
   const handleCollectClick = (item) => {
-    onCollectPayment(item.id);
+    onCollectPayment(item.id, item.balance);
     if (onShowToast) {
       onShowToast(
         `Saldo cobrado a ${item.guest} (${formatCurrency(item.balance)}).`
@@ -187,13 +200,21 @@ export function Incomings({ payments, onCollectPayment, onShowToast }) {
         </div>
 
         <div className="panel-footer">
-          <span>Cambios guardados en este navegador</span>
+          <span>
+            {isLiveData
+              ? "Sincronizado con MySQL · camping_manager"
+              : "Cambios guardados en este navegador"}
+          </span>
         </div>
       </article>
 
       <footer className="dashboard-footer">
         <span>Tierra Adentro · Administración</span>
-        <span>Demo interactiva · Sin conexión a datos reales</span>
+        <span>
+          {isLiveData
+            ? "Conectado a MySQL · camping_manager"
+            : "Datos ilustrativos de demostración"}
+        </span>
       </footer>
     </>
   );

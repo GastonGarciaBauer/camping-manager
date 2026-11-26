@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
-import { INCOME_PERIODS } from "../../data/mockResumen";
 
-const PERIOD_OPTIONS = Object.keys(INCOME_PERIODS);
+const PERIOD_OPTIONS = [
+  { key: "7d", label: "Últimos 7 días" },
+  { key: "30d", label: "Últimos 30 días" },
+  { key: "month", label: "Este mes" },
+];
 
-export function IncomeChart({ onShowToast }) {
-  const [selectedPeriod, setSelectedPeriod] = useState("Últimos 7 días");
+function formatMoney(amount) {
+  return `$ ${Number(amount || 0).toLocaleString("es-AR")}`;
+}
+
+export function IncomeChart({ chartData, period, onChangePeriod, onShowToast }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -20,12 +26,24 @@ export function IncomeChart({ onShowToast }) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuOpen]);
 
-  const currentData = INCOME_PERIODS[selectedPeriod];
+  const currentOption =
+    PERIOD_OPTIONS.find((opt) => opt.key === period) || PERIOD_OPTIONS[0];
 
-  const handleSelectPeriod = (period) => {
-    setSelectedPeriod(period);
+  const days = Array.isArray(chartData?.days) ? chartData.days : [];
+  const total = Number(chartData?.total || 0);
+  const maxAmount = Math.max(...days.map((d) => Number(d.amount || 0)), 1);
+
+  // Para que en 30d o "Este mes" las barras no se aprieten demasiado, mostramos hasta los últimos 14 días si hay muchos
+  const visibleBars = days.length > 14 ? days.slice(-14) : days;
+
+  const handleSelectPeriod = (option) => {
     setMenuOpen(false);
-    onShowToast(`Período seleccionado: ${period}. Datos ilustrativos.`);
+    if (onChangePeriod) {
+      onChangePeriod(option.key);
+    }
+    if (onShowToast) {
+      onShowToast(`Período seleccionado: ${option.label}.`);
+    }
   };
 
   return (
@@ -33,7 +51,7 @@ export function IncomeChart({ onShowToast }) {
       <div className="panel-heading">
         <div>
           <h2>Ingresos del camping</h2>
-          <p>Cobros registrados en los últimos 7 días</p>
+          <p>Cobros aprobados · {chartData?.label || currentOption.label}</p>
         </div>
         <button
           className="period-button"
@@ -41,18 +59,18 @@ export function IncomeChart({ onShowToast }) {
           type="button"
           onClick={() => setMenuOpen((prev) => !prev)}
         >
-          {selectedPeriod} <span>⌄</span>
+          {currentOption.label} <span>⌄</span>
         </button>
 
         {menuOpen && (
           <div className="period-menu" id="periodMenu">
-            {PERIOD_OPTIONS.map((period) => (
+            {PERIOD_OPTIONS.map((option) => (
               <button
-                key={period}
+                key={option.key}
                 type="button"
-                onClick={() => handleSelectPeriod(period)}
+                onClick={() => handleSelectPeriod(option)}
               >
-                {period}
+                {option.label}
               </button>
             ))}
           </div>
@@ -60,20 +78,20 @@ export function IncomeChart({ onShowToast }) {
       </div>
 
       <div className="income-total">
-        {currentData.total} <small>ARS ·</small>
+        {formatMoney(total)} <small>ARS ·</small>
       </div>
 
       <div className="chart-wrap">
         <div className="y-labels">
-          <span>$ 600 mil</span>
-          <span>$ 400 mil</span>
-          <span>$ 200 mil</span>
+          <span>{formatMoney(maxAmount)}</span>
+          <span>{formatMoney(Math.round(maxAmount * 0.66))}</span>
+          <span>{formatMoney(Math.round(maxAmount * 0.33))}</span>
           <span>$ 0</span>
         </div>
         <div
           className="bar-chart"
           role="img"
-          aria-label="Gráfico de ingresos: domingo, lunes y martes casi sin ingresos; miércoles 100 mil, jueves 230 mil, viernes 150 mil y sábado 570 mil pesos."
+          aria-label="Gráfico de ingresos diarios del período seleccionado"
         >
           <div className="grid-lines">
             <i />
@@ -81,15 +99,23 @@ export function IncomeChart({ onShowToast }) {
             <i />
             <i />
           </div>
-          {currentData.bars.map((bar) => (
-            <div className="bar-item" key={bar.day}>
-              <div
-                className={`bar ${bar.isToday ? "bar-today" : ""}`}
-                style={{ height: `${bar.height}%` }}
-              />
-              <span>{bar.day}</span>
-            </div>
-          ))}
+          {visibleBars.map((bar) => {
+            const pct =
+              Number(bar.amount || 0) > 0
+                ? Math.max(6, Math.round((Number(bar.amount) / maxAmount) * 100))
+                : 0;
+
+            return (
+              <div className="bar-item" key={bar.date}>
+                <div
+                  className={`bar ${bar.is_today ? "bar-today" : ""}`}
+                  style={{ height: `${pct}%` }}
+                  title={`${bar.label}: ${formatMoney(bar.amount)}`}
+                />
+                <span>{bar.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </article>
