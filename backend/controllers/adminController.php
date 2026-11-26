@@ -49,7 +49,26 @@ class AdminController {
                 $input = json_decode(file_get_contents('php://input'), true) ?: [];
                 $postAction = $input['action'] ?? '';
 
-                if ($postAction === 'movement' && isset($input['reservation_id'], $input['movement_action'])) {
+                if ($postAction === 'login') {
+                    $result = $this->adminModel->loginAdmin(
+                        $input['email'] ?? '',
+                        $input['password'] ?? ''
+                    );
+                    if (isset($result['error'])) {
+                        http_response_code(401);
+                    }
+                    echo json_encode($result);
+                } elseif ($postAction === 'register_admin') {
+                    $result = $this->adminModel->registerAdmin(
+                        $input['email'] ?? '',
+                        $input['password'] ?? '',
+                        $input['repeat_password'] ?? ''
+                    );
+                    if (isset($result['error'])) {
+                        http_response_code(400);
+                    }
+                    echo json_encode($result);
+                } elseif ($postAction === 'movement' && isset($input['reservation_id'], $input['movement_action'])) {
                     $success = $this->adminModel->updateMovementStay(
                         $input['reservation_id'],
                         $input['movement_action']

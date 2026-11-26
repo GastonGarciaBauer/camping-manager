@@ -8,6 +8,116 @@ class Admin {
         $this->conn = $db;
     }
 
+    // Garantiza que exista el usuario administrador de prueba 'admin' / 'admin' con bcrypt
+    public function ensureDefaultAdmin() {
+        $defaultEmail = 'admin';
+        $stmt = $this->conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+        $stmt->bind_param("s", $defaultEmail);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $exists = $res && $res->num_rows > 0;
+        $stmt->close();
+
+        if (!$exists) {
+            $hash = password_hash('admin', PASSWORD_BCRYPT);
+            $ins = $this->conn->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
+            $ins->bind_param("ss", $defaultEmail, $hash);
+            $ins->execute();
+            $ins->close();
+        }
+    }
+
+    // Validar login de administrador
+    public function loginAdmin($email, $password) {
+        $this->ensureDefaultAdmin();
+
+        $cleanEmail = strtolower(trim((string)$email));
+        $plainPassword = (string)$password;
+
+        if ($cleanEmail === '' || $plainPassword === '') {
+            return ["error" => "Completá el email/usuario y la contraseña."];
+        }
+
+        $stmt = $this->conn->prepare("SELECT id, email, password_hash FROM users WHERE LOWER(email) = ? LIMIT 1");
+        $stmt->bind_param("s", $cleanEmail);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result ? $result->fetch_assoc() : null;
+        $stmt->close();
+
+        if (!$user || !password_verify($plainPassword, $user['password_hash'])) {
+            return ["error" => "Credenciales incorrectas."];
+        }
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['admin_user_id'] = (int)$user['id'];
+        $_SESSION['admin_email'] = $user['email'];
+
+        return [
+            "status" => "success",
+            "message" => "Sesión iniciada correctamente.",
+            "user" => [
+                "id" => (int)$user['id'],
+                "email" => $user['email']
+            ]
+        ];
+    }
+
+    // Registrar un nuevo administrador con contraseña hasheada en bcrypt
+    public function registerAdmin($email, $password, $repeatPassword) {
+        $this->ensureDefaultAdmin();
+
+        $cleanEmail = strtolower(trim((string)$email));
+        $pass = (string)$password;
+        $repeat = (string)$repeatPassword;
+
+        if ($cleanEmail === '' || $pass === '' || $repeat === '') {
+            return ["error" => "Completá todos los campos."];
+        }
+
+        if ($pass !== $repeat) {
+            return ["error" => "Las contraseñas no coinciden."];
+        }
+
+        if (strlen($pass) < 4) {
+            return ["error" => "La contraseña debe tener al menos 4 caracteres."];
+        }
+
+        $stmtCheck = $this->conn->prepare("SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1");
+        $stmtCheck->bind_param("s", $cleanEmail);
+        $stmtCheck->execute();
+        $exists = $stmtCheck->get_result()->num_rows > 0;
+        $stmtCheck->close();
+
+        if ($exists) {
+            return ["error" => "Ya existe un administrador registrado con ese email o usuario."];
+        }
+
+        $passwordHash = password_hash($pass, PASSWORD_BCRYPT);
+        $stmtInsert = $this->conn->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
+        $stmtInsert->bind_param("ss", $cleanEmail, $passwordHash);
+
+        if (!$stmtInsert->execute()) {
+            $stmtInsert->close();
+            return ["error" => "No se pudo guardar el administrador en la base de datos."];
+        }
+
+        $newId = (int)$this->conn->insert_id;
+        $stmtInsert->close();
+
+        return [
+            "status" => "success",
+            "message" => "Administrador agregado correctamente.",
+            "user" => [
+                "id" => $newId,
+                "email" => $cleanEmail
+            ]
+        ];
+    }
+
     // Obtener estadísticas generales para los KPIs del Dashboard (blindado contra tablas vacías)
     public function getDashboardStats() {
         $resTotal = 0;
@@ -346,7 +456,6 @@ class Admin {
         return $tasks;
     }
 
-    // Listar todas las tareas para la sección Tareas
     public function getAllTasks() {
         $query = "
             SELECT id, titulo, sector, prioridad, estado, fecha_programada
@@ -374,7 +483,6 @@ class Admin {
         return $tasks;
     }
 
-    // Crear nueva tarea en la tabla tasks
     public function createTask($title, $sector = 'Sector común', $priority = 'media') {
         $cleanTitle = trim((string)$title);
         $cleanSector = trim((string)$sector) ?: 'Sector común';
@@ -412,7 +520,6 @@ class Admin {
         ];
     }
 
-    // Registrar check-in o check-out desde Movimientos / Reservas
     public function updateMovementStay($reservationId, $movementAction) {
         $reservationId = (int)$reservationId;
         if ($movementAction === 'checkin') {
@@ -439,7 +546,6 @@ class Admin {
         return $ok;
     }
 
-    // Alternar estado pendiente / completada de una tarea
     public function toggleTaskStatus($taskId) {
         $taskId = (int)$taskId;
         $stmt = $this->conn->prepare("
@@ -454,7 +560,6 @@ class Admin {
         return $ok;
     }
 
-    // Listar todas las parcelas y cabañas con su estado operativo real hoy
     public function getAccommodationsStatus() {
         $today = date('Y-m-d');
         $stmt = $this->conn->prepare("
@@ -519,7 +624,6 @@ class Admin {
         return $units;
     }
 
-    // Actualizar estado operativo de una unidad (Disponible / Mantenimiento)
     public function updateAccommodationOperationalStatus($accommodationId, $newStatus, $note = null) {
         $accommodationId = (int)$accommodationId;
 
@@ -543,7 +647,6 @@ class Admin {
         return $ok;
     }
 
-    // Listar reservas con saldo pendiente para la sección Cobros
     public function getPendingPayments() {
         $today = date('Y-m-d');
         $query = "
@@ -628,7 +731,6 @@ class Admin {
         return $pending;
     }
 
-    // Registrar cobro manual aprobado y actualizar estado de la reserva si queda saldada
     public function collectReservationPayment($reservationId, $monto = null, $metodoPago = 'efectivo') {
         $reservationId = (int)$reservationId;
 
@@ -693,7 +795,6 @@ class Admin {
         return true;
     }
 
-    // Listar todas las reservas con datos del huésped y unidad asignada
     public function getAllReservations() {
         $today = date('Y-m-d');
         $query = "SELECT r.*, 
@@ -775,7 +876,6 @@ class Admin {
         return $rows;
     }
 
-    // Actualizar manualmente el estado de una reserva (Ej: Aprobar o Cancelar desde el backoffice)
     public function updateReservationStatus($reservationId, $nuevoEstado) {
         $query = "UPDATE reservations SET estado_reserva = ? WHERE id = ?";
         $stmt = $this->conn->prepare($query);
