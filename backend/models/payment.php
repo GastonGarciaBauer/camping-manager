@@ -1,5 +1,5 @@
 <?php
-// backend/models/Payment.php
+// backend/models/payment.php
 
 class Payment {
     private $conn;

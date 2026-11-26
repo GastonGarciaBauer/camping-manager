@@ -1,6 +1,8 @@
 <?php
 // backend/config/database.php
 
+date_default_timezone_set('America/Argentina/Buenos_Aires');
+
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');      // Cambiar según tu entorno local (ej. XAMPP/WAMP)
 define('DB_PASS', '');          // Contraseña de tu MySQL local
@@ -17,5 +19,6 @@ function getDBConnection() {
     }
     
     $conn->set_charset("utf8mb4");
+    $conn->query("SET time_zone = '-03:00'");
     return $conn;
 }

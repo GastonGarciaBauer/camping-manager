@@ -1,5 +1,5 @@
 <?php
-// backend/models/Reservation.php
+// backend/models/reservation.php
 
 require_once __DIR__ . '/../utils/Mailer.php';
 

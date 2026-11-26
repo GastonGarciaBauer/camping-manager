@@ -1,5 +1,5 @@
 <?php
-// backend/controllers/PaymentController.php
+// backend/controllers/paymentController.php
 require_once __DIR__ . '/../config/mercadopago.php';
 require_once __DIR__ . '/../models/payment.php';
 require_once __DIR__ . '/../models/reservation.php';

@@ -1,5 +1,5 @@
 <?php
-// backend/models/Accommodation.php
+// backend/models/accommodation.php
 
 class Accommodation {
     private $conn;

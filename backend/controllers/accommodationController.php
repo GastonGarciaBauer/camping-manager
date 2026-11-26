@@ -1,5 +1,5 @@
 <?php
-// backend/controllers/AccommodationController.php
+// backend/controllers/accommodationController.php
 require_once __DIR__ . '/../models/accommodation.php';
 
 class AccommodationController {
